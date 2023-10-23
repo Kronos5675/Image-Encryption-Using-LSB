@@ -1,6 +1,7 @@
 [theme]
-base="dark"
-primaryColor="#006f6f"
-secondaryBackgroundColor="#ACFFFC"
+primaryColor="#40bbbb"
+backgroundColor="#000000"
+secondaryBackgroundColor="#1a3535"
 textColor="#ffffff"
-font="vcr osd mono"
+font="Monaco"
+
