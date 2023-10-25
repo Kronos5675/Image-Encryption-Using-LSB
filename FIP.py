@@ -7,8 +7,9 @@ import tempfile
 import random
 import string
 
+
 # Encoding function
-def encode_image(image_path, sentence, output_image_name, extension):
+def encode_image(image_path, sentence, output_image_name):
     img = Image.open(image_path)
 
     access_code = generate_access_code(10)
@@ -38,14 +39,9 @@ def encode_image(image_path, sentence, output_image_name, extension):
                     data_index += 1
                 img.putpixel((x, y), tuple(pixel))
 
-    encoded_image_stream = io.BytesIO()
-    img.save(encoded_image_stream, extension)
-    encoded_image_data = encoded_image_stream.getvalue()
+    with open(output_image_name, "wb") as encoded_image:
+        img.save(encoded_image, format="PNG")
 
-    with open(output_image_name, "wb") as encoded_image_file:
-        encoded_image_file.write(encoded_image_data)
-
-    return extension
 
 # Decoding function
 def extract_data_from_image(image_path):
@@ -76,14 +72,17 @@ def extract_data_from_image(image_path):
 
     return access_code + data
 
+
 def binary_to_ascii(binary_string):
     ascii_characters = [binary_string[i:i+8] for i in range(0, len(binary_string), 8)]
     ascii_text = ''.join([chr(int(char, 2)) for char in ascii_characters])
     return ascii_text
 
+
 def generate_access_code(length):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length)).upper()
+
 
 # Create a temporary directory for image storage
 tmp_dir = tempfile.TemporaryDirectory()
@@ -107,14 +106,13 @@ elif page == "Encode":
     if uploaded_image:
         data = st.text_area("Enter the data you want to encode", max_chars=200)
 
-        selected_extension = st.selectbox("Select the image extension", ["PNG", "JPEG", "JPG"])
-        extension = selected_extension.lower()
-
         if st.button("Encode", key="encoding_button"):
-            output_image_name = os.path.join(tmp_dir.name, "encoded_image." + extension)
-            extension_used = encode_image(uploaded_image, data, output_image_name, extension)
+            output_image_name = os.path.join(tmp_dir.name, "encoded_image.png")
+            encode_image(uploaded_image, data, output_image_name)
+
+            # Provide the download link for the encoded image
             st.markdown(
-                f"**Encoded Image** - [Download](data:file/{extension_used};base64,{base64.b64encode(open(output_image_name, 'rb').read()).decode()})")
+                f"**Encoded Image** - [Download](data:file/png;base64,{base64.b64encode(open(output_image_name, 'rb').read()).decode()})")
 
 elif page == "Decode":
     st.subheader("Decode an Image")
@@ -143,6 +141,5 @@ elif page == "Decode":
                     st.error("Access code does not match.")
             else:
                 st.error("No access code or data found in the image.")
-
 tmp_dir.cleanup()
 
